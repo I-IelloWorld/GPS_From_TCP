@@ -11,11 +11,11 @@ def read_novatel_tcp(host="192.168.3.22", port=2000):
             data = sock.recv(4096).decode("ascii", errors="ignore").strip()
             if data:
                 print(data)
-                if data.startswith("$GPGGA"):
+                if data.startswith("$GPGGA"):           #GPGGA Format
                     print(parse_gpgga(data))
-                if data.startswith("#BESTPOSA"):
+                if data.startswith("#BESTPOSA"):        #Pure GPS Position
                     print(parse_bestposa(data))
-                if data.startswith("#INSPVAA"):
+                if data.startswith("#INSPVAA"):         #IMU+GPS Position
                     print(parse_inspva(data))
                 # print(data[1]+data[2]+data[3]+data[4]+data[5]+data[6])
 
