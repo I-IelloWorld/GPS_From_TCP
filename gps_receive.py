@@ -1,6 +1,6 @@
 import socket
 
-def read_novatel_tcp(host="192.168.3.22", port=2000):
+def read_novatel_tcp(host="192.168.3.22", port=2000): # Single Antenna GPS
     """ Read Novatel GPS data through TCP """
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
