@@ -1,6 +1,6 @@
 import socket
 
-def read_novatel_tcp(host="192.168.3.3", port=2000):
+def read_novatel_tcp(host="192.168.3.22", port=2000): # Single Antenna GPS
     """ Read Novatel GPS data through TCP """
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -11,10 +11,12 @@ def read_novatel_tcp(host="192.168.3.3", port=2000):
             data = sock.recv(4096).decode("ascii", errors="ignore").strip()
             if data:
                 print(data)
-                if data.startswith("$GPGGA"):
+                if data.startswith("$GPGGA"):           #GPGGA Format
                     print(parse_gpgga(data))
-                if data.startswith("#BESTPOSA"):
+                if data.startswith("#BESTPOSA"):        #Pure GPS Position
                     print(parse_bestposa(data))
+                if data.startswith("#INSPVAA"):         #IMU+GPS Position
+                    print(parse_inspva(data))
                 # print(data[1]+data[2]+data[3]+data[4]+data[5]+data[6])
 
     except socket.error as e:
@@ -55,11 +57,36 @@ def parse_bestposa(bestposa_str):
         return None
 
     try:
-        lat = float(parts[12])
-        lon = float(parts[13])
-        alt = float(parts[14])
+        lat = float(parts[11])
+        lon = float(parts[12])
+        alt = float(parts[13])
         status = parts[5]
         return {"latitude": lat, "longitude": lon, "altitude": alt, "status": status}
+    except (ValueError, IndexError):
+        return None
+    
+def parse_inspva(inspva_str):
+    """Decode inspva"""
+    # if not bestposa_str.startswith("#BESTPOSA"):
+    #     return None
+
+    # parts = bestposa_str.split(";")[0].split(",")
+    parts = inspva_str.split(",")
+    print(len(parts))
+    if len(parts) < 12:
+        return None
+
+    try:
+        lat = float(parts[11])      # The doc of each data is in https://docs.novatel.com/OEM7/Content/SPAN_Logs/INSPVA.htm
+        lon = float(parts[12])
+        north_velocity = float(parts[14])
+        east_velocity = float(parts[15])
+        roll = float(parts[17])
+        pitch = float(parts[18])
+        yaw = float(parts[19])
+        status = parts[5]
+
+        return {"latitude": lat, "longitude": lon, "north_velocity": north_velocity, "east_velocity": east_velocity, "roll": roll, "pitch": pitch, "altitude": yaw, "status": status}
     except (ValueError, IndexError):
         return None
 
